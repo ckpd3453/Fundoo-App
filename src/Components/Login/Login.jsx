@@ -1,14 +1,97 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Login.css";
-import TextArea from "../TextArea/TextArea";
 import Button from "@mui/material/Button";
-import SignUpPage from "../../Pages/SignUpPage";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import TextField from "@mui/material/TextField";
+import { loginApi } from "../../Service/UserService";
+
+const width = {
+  width: "80%",
+};
+
+const regexPattern = {
+  emailPattern: /^[\w-\.]+@gmail\.com$/,
+  passwordPattern:
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+};
 
 export default function Login() {
-  const width = {
-    width: "80%",
+  const navigate = useNavigate();
+  const [loginObj, setLoginObj] = useState({
+    email: "",
+    password: "",
+  });
+  const [isValidEmail, setIsValidEmail] = useState({
+    status: "",
+    message: "",
+  });
+  const [isValidPassword, setIsValidPassword] = useState({
+    status: "",
+    message: "",
+  });
+
+  const changeHandler = {
+    getEmail: (e) => {
+      setLoginObj((prev) => ({ ...prev, email: e.target.value }));
+    },
+    getPassword: (e) => {
+      setLoginObj((prev) => ({ ...prev, password: e.target.value }));
+    },
   };
+
+  const submitHandler = () => {
+    const checkEmail = regexPattern.emailPattern.test(loginObj.email);
+    const checkPassword = regexPattern.passwordPattern.test(loginObj.password);
+
+    if (checkEmail === true && checkPassword === false) {
+      setIsValidPassword((prev) => ({
+        ...prev,
+        status: true,
+        message: "Enter valid Password(eg: Abcd@123)",
+      }));
+      // setIsValidEmail((prev) => ({ ...prev, status: false, message: "" }));
+    } else if (checkEmail === false && checkPassword === true) {
+      setIsValidEmail((prev) => ({
+        ...prev,
+        status: true,
+        message: "Enter valid Email",
+      }));
+    } else if (checkEmail === false && checkPassword === false) {
+      setIsValidPassword((prev) => ({
+        ...prev,
+        status: true,
+        message: "Enter valid Password(eg: Abcd@123)",
+      }));
+
+      setIsValidEmail((prev) => ({
+        ...prev,
+        status: true,
+        message: "Enter valid Email",
+      }));
+    } else {
+      setIsValidEmail((prev) => ({ ...prev, status: false, message: "" }));
+      setIsValidPassword((prev) => ({ ...prev, status: false, message: "" }));
+    }
+
+    if (checkEmail === true && checkPassword === true) {
+      loginApi(loginObj)
+        .then((response) => {
+          navigate("/dashboard");
+          alert("Login Succesfull", response.data);
+          console.log("Response - promise", response);
+          // console.log(res);
+          localStorage.setItem("auth", response.data.data.Auth);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+
+  const signUp = () => {
+    navigate("/signup");
+  };
+
   return (
     <div className="main-div">
       <div className="loginContainer">
@@ -23,10 +106,33 @@ export default function Login() {
         </div>
         <div className="login-body">
           <div className="login-text-area">
-            <TextArea msg="Email or phone" width={width} />
+            <div className="text-area">
+              <TextField
+                id="outlined-basic"
+                label="Email or phone"
+                variant="outlined"
+                size="small"
+                sx={width}
+                onChange={changeHandler.getEmail}
+                error={isValidEmail.status}
+                helperText={isValidEmail.message}
+              />
+            </div>
           </div>
           <div className="login-text-area">
-            <TextArea msg="Password" width={width} />
+            <div className="text-area">
+              <TextField
+                id="outlined-basic"
+                label="Password"
+                obscureText="true"
+                variant="outlined"
+                size="small"
+                sx={width}
+                onChange={changeHandler.getPassword}
+                error={isValidPassword.status}
+                helperText={isValidPassword.message}
+              />
+            </div>
           </div>
           <a href="" className="forgot-link">
             Forgot email?
@@ -39,12 +145,16 @@ export default function Login() {
           </div>
         </div>
         <div className="login-footer">
-          <Button variant="text" sx={{ color: "rgb(0, 162, 255);" }}>
-            <Link to={"/signup"} className="redirect">
-              Create account
-            </Link>
+          <Button
+            variant="text"
+            sx={{ color: "rgb(0, 162, 255);" }}
+            onClick={signUp}
+          >
+            Create account
           </Button>
-          <Button variant="contained">Sign in</Button>
+          <Button variant="contained" onClick={submitHandler}>
+            Sign in
+          </Button>
         </div>
       </div>
     </div>

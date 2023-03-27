@@ -1,0 +1,14 @@
+{
+  "folders": [
+	{
+		"path": "../../../admin_ui"
+	},
+	{
+		"path": "../.."
+	},
+	{
+		"path": "../../../../Node_Projects/fundoo-app-backend"
+	}
+],
+  "settings": {}
+}
